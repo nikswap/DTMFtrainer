@@ -19,6 +19,8 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -92,11 +94,13 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 int random_string_length;
                 try {
-                    random_string_length = Integer.parseInt(lenText.getText().toString());
+                    random_string_length = Math.abs(Integer.parseInt(lenText.getText().toString()));
                 } catch (Exception e) {
                     random_string_length = 8;
                 }
-
+                if (random_string_length > 100) {
+                    random_string_length = 100;
+                }
                 secret_string = getRandomDTMFString(random_string_length);
                 solText.setVisibility(View.INVISIBLE);
                 solText.setText(new String(secret_string));
@@ -109,21 +113,26 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String res = "Wrong. Try again";
+                Pattern pattern = Pattern.compile("[^0-9A-D\\*#]*", Pattern.CASE_INSENSITIVE);
+                Matcher matcher = pattern.matcher(guessText.getText().toString());
+                String filtered = matcher.replaceAll("");
+                char[] guessArr = filtered.toCharArray();
+                guessText.setText(filtered);
                 if (guessText.getText().toString().toUpperCase().equals(new String(secret_string))) {
                     res = "Correct. You are good";
                 } else {
                     int ct = 0;
-                    char[] guessArr = guessText.getText().toString().toCharArray();
                     int k = guessArr.length;
                     if (k>secret_string.length) k=secret_string.length;
                     for (int i = 0; i < k; i++) {
+                        Log.d("DTMFTRAINER",guessArr[i]+" "+secret_string[i]+" "+(guessArr[i]==secret_string[i]));
                         if (guessArr[i]==secret_string[i]) {
                             ct++;
                         }
                     }
                     res += " You got: "+ct+" correct.";
                 }
-
+                playTones(guessArr);
                 Toast.makeText(c,res,Toast.LENGTH_LONG).show();
             }
         });
@@ -132,37 +141,42 @@ public class MainActivity extends AppCompatActivity {
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final Snyder snyd = new Snyder();
-                snyd.l = 0;
-                snyd.play = true;
-
-                //while (snyd.l < secret_string.length-2) {
-                    if (snyd.play) {
-                        snyd.play = false;
-                        Log.d("DTMFTRAINER","GETTING "+secret_string[snyd.l]+" AT "+snyd.l);
-                        int tone = players.get(""+secret_string[snyd.l]);
-                        initTone(tone);
-                        mp.start();
-                        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                            @Override
-                            public void onCompletion(MediaPlayer mp) {
-                                if (snyd.l == secret_string.length-1) {
-                                    mp.stop();
-                                    return;
-                                }
-                                snyd.l++;
-                                snyd.play=true;
-                                Log.d("DTMFTRAINER","GETTING "+secret_string[snyd.l]+" AT "+snyd.l);
-                                int tone = players.get(""+secret_string[snyd.l]);
-                                initTone(tone);
-                                mp.start();
-                            }
-                        });
-                    }
-                //}
+                playTones(secret_string);
             }
         });
     }
+
+    private void playTones(char[] input) {
+        final Snyder snyd = new Snyder();
+        snyd.l = 0;
+        snyd.play = true;
+
+        //while (snyd.l < secret_string.length-2) {
+        if (snyd.play) {
+            snyd.play = false;
+            Log.d("DTMFTRAINER","GETTING "+input[snyd.l]+" AT "+snyd.l);
+            int tone = players.get(""+input[snyd.l]);
+            initTone(tone);
+            mp.start();
+            mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    if (snyd.l == input.length-1) {
+                        mp.stop();
+                        return;
+                    }
+                    snyd.l++;
+                    snyd.play=true;
+                    Log.d("DTMFTRAINER","GETTING "+input[snyd.l]+" AT "+snyd.l);
+                    int tone = players.get(""+input[snyd.l]);
+                    initTone(tone);
+                    mp.start();
+                }
+            });
+        }
+        //}
+    }
+
     private MediaPlayer mp;
 
     public Uri getUriToResource(int resId) throws Resources.NotFoundException {
