@@ -45,8 +45,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if (mp != null)
+        if (mp != null) {
             mp.release();
+            mp=null;
+        }
     }
 
     @Override
@@ -107,8 +109,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String res = "Wrong. Try again";
-                if (guessText.getText().toString().equals(new String(secret_string)))
+                if (guessText.getText().toString().toUpperCase().equals(new String(secret_string))) {
                     res = "Correct. You are good";
+                } else {
+                    int ct = 0;
+                    char[] guessArr = guessText.getText().toString().toCharArray();
+                    int k = guessArr.length;
+                    if (k>secret_string.length) k=secret_string.length;
+                    for (int i = 0; i < k; i++) {
+                        if (guessArr[i]==secret_string[i]) {
+                            ct++;
+                        }
+                    }
+                    res += " You got: "+ct+" correct.";
+                }
+
                 Toast.makeText(c,res,Toast.LENGTH_LONG).show();
             }
         });
