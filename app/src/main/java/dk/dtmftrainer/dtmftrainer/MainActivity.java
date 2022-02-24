@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         final EditText solText = (EditText)findViewById(R.id.editTextTextPersonName2);
-
+        solText.setEnabled(false);
         Button showSolButton = (Button)findViewById(R.id.button4);
         showSolButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -87,7 +87,8 @@ public class MainActivity extends AppCompatActivity {
 
         final EditText lenText = (EditText) findViewById(R.id.editTextNumberSigned);
         secret_string = getRandomDTMFString(8);
-
+        solText.setVisibility(View.INVISIBLE);
+        solText.setText(new String(secret_string));
         Button generateNewButton = (Button) findViewById(R.id.button2);
         generateNewButton.setOnClickListener(new View.OnClickListener() {
             @Override
