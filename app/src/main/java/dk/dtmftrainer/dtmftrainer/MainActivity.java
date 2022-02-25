@@ -117,6 +117,10 @@ public class MainActivity extends AppCompatActivity {
                 Pattern pattern = Pattern.compile("[^0-9A-D\\*#]*", Pattern.CASE_INSENSITIVE);
                 Matcher matcher = pattern.matcher(guessText.getText().toString());
                 String filtered = matcher.replaceAll("");
+                if (filtered.length() == 0){
+                    guessText.setText("");
+                    return;
+                }
                 char[] guessArr = filtered.toCharArray();
                 guessText.setText(filtered);
                 if (guessText.getText().toString().toUpperCase().equals(new String(secret_string))) {
